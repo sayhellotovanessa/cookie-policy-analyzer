@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cookie Analyzer</title>
+    <style>
+        body {
+            width: 400px;
+            height: 600px;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .current-site {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .site-url {
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .privacy-score {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .score-good { background: #48bb78; }
+        .score-medium { background: #ed8936; }
+        .score-bad { background: #f56565; }
+        .score-unknown { background: #a0aec0; }
+        
+        .cookie-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .cookie-count {
+            background: #f7fafc;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 3px solid #667eea;
+        }
+        
+        .cookie-count .number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .cookie-count .label {
+            font-size: 11px;
+            color: #718096;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .details-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .details-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #4a5568;
+        }
+        
+        .cookie-list {
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        
+        .cookie-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cookie-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cookie-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .cookie-type {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .type-essential { background: #48bb78; }
+        .type-analytics { background: #ed8936; }
+        .type-advertising { background: #f56565; }
+        .type-functional { background: #38b2ac; }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .status-active { background: #48bb78; }
+        .status-blocked { background: #f56565; }
+        
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍪 Cookie Analyzer</h1>
+        </div>
+        
+        <div id="loading" class="loading">
+            Analyzing current site...
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div class="current-site">
+                <div class="site-url" id="currentUrl">Loading...</div>
+                <div class="privacy-score score-unknown" id="privacyScore">Analyzing...</div>
+                
+                <div class="cookie-summary">
+                    <div class="cookie-count">
+                        <div class="number" id="totalCookies">0</div>
+                        <div class="label">Total Cookies</div>
+                    </div>
+                    <div class="cookie-count">
+                        <div class="number" id="blockedCookies">0</div>
+                        <div class="label">Blocked</div>
+                    </div>
+                    <div class="cookie-count">
+                        <div class="number" id="trackingCookies">0</div>
+                        <div class="label">Tracking</div>
+                    </div>
+                    <div class="cookie-count">
+                        <div class="number" id="essentialCookies">0</div>
+                        <div class="label">Essential</div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-danger" id="blockAllBtn">🚫 Block All Tracking</button>
+                    <button class="btn btn-primary" id="autoDeclineBtn">⚡ Auto-Decline Cookies</button>
+                    <button class="btn btn-secondary" id="viewDetailsBtn">📋 View Details</button>
+                </div>
+            </div>
+            
+            <div class="details-section" id="cookieDetails" style="display: none;">
+                <h3>Cookie Details</h3>
+                <div class="cookie-list" id="cookieList">
+                    <!-- Cookie items will be populated here -->
+                </div>
+            </div>
+            
+            <div class="details-section">
+                <h3>Settings</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="settingsBtn">⚙️ Extension Settings</button>
+                    <button class="btn btn-secondary" id="exportBtn">📄 Export Report</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Privacy-focused cookie management
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

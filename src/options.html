@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Analyzer Settings</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            margin: 0 0 10px 0;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .settings-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .setting-group {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .setting-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .setting-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .setting-description {
+            color: #718096;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .setting-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .setting-control:last-child {
+            margin-bottom: 0;
+        }
+        
+        .setting-label {
+            font-weight: 500;
+            color: #4a5568;
+            flex: 1;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #cbd5e0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: #667eea;
+        }
+        
+        .toggle-switch .slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-switch.active .slider {
+            transform: translateX(30px);
+        }
+        
+        .select-control {
+            min-width: 150px;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .select-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        .notification {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .notification.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .notification.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+        
+        .advanced-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .advanced-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+        
+        .whitelist-section {
+            margin-top: 15px;
+        }
+        
+        .whitelist-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .whitelist-input input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .whitelist-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .whitelist-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .whitelist-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .whitelist-item:last-child {
+            border-bottom: none;
+        }
+        
+        .remove-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍪 Cookie Analyzer Settings</h1>
+            <p>Configure your privacy preferences and cookie management options</p>
+        </div>
+        
+        <div id="notification" class="notification"></div>
+        
+        <div class="settings-card">
+            <div class="setting-group">
+                <div class="setting-title">Cookie Management</div>
+                <div class="setting-description">
+                    Control how the extension handles cookies and tracking scripts on websites.
+                </div>
+                
+                <div class="setting-control">
+                    <div class="setting-label">
+                        <strong>Auto-decline cookie banners</strong><br>
+                        <small>Automatically click "Reject All" on cookie consent banners</small>
+                    </div>
+                    <div class="toggle-switch" id="autoDeclineToggle">
+                        <div class="slider"></div>
+                    </div>
+                </div>
+                
+                <div class="setting-control">
+                    <div class="setting-label">
+                        <strong>Block tracking cookies</strong><br>
+                        <small>Automatically remove advertising and analytics cookies</small>
+                    </div>
+                    <div class="toggle-switch" id="blockTrackingToggle">
+                        <div class="slider"></div>
+                    </div>
+                </div>
+                
+                <div class="setting-control">
+                    <div class="setting-label">
+                        <strong>Show notifications</strong><br>
+                        <small>Display alerts when tracking is detected</small>
+                    </div>
+                    <div class="toggle-switch" id="notificationsToggle">
+                        <div class="slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-title">Privacy Level</div>
+                <div class="setting-description">
+                    Choose your overall privacy protection level. Higher levels provide more protection but may affect website functionality.
+                </div>
+                
+                <div class="setting-control">
+                    <div class="setting-label">
+                        <strong>Protection Level</strong>
+                    </div>
+                    <select class="select-control" id="privacyLevel">
+                        <option value="basic">Basic - Essential cookies only</option>
+                        <option value="medium">Medium - Block most tracking</option>
+                        <option value="strict">Strict - Maximum protection</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-title">Statistics</div>
+                <div class="setting-description">
+                    Your privacy protection statistics since installing the extension.
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="sitesAnalyzed">0</div>
+                        <div class="stat-label">Sites Analyzed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="cookiesBlocked">0</div>
+                        <div class="stat-label">Cookies Blocked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="bannersDeclined">0</div>
+                        <div class="stat-label">Banners Auto-Declined</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="trackersBlocked">0</div>
+                        <div class="stat-label">Trackers Blocked</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-title">Advanced Options</div>
+                <div class="setting-description">
+                    Advanced configuration options for power users.
+                </div>
+                
+                <div class="advanced-section">
+                    <div class="advanced-title">Website Whitelist</div>
+                    <div class="setting-description">
+                        Add websites where you want to allow all cookies and tracking.
+                    </div>
+                    
+                    <div class="whitelist-section">
+                        <div class="whitelist-input">
+                            <input type="text" id="whitelistInput" placeholder="Enter domain (e.g., example.com)">
+                            <button class="btn btn-primary" id="addWhitelistBtn">Add</button>
+                        </div>
+                        
+                        <div class="whitelist-list" id="whitelistList">
+                            <!-- Whitelist items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="saveBtn">Save Settings</button>
+                <button class="btn btn-secondary" id="exportBtn">Export Data</button>
+                <button class="btn btn-secondary" id="importBtn">Import Settings</button>
+                <button class="btn btn-danger" id="resetBtn">Reset to Defaults</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Cookie Policy Analyzer v1.0 - Your privacy, your choice</p>
+            <p>This extension doesn't collect any personal data</p>
+        </div>
+    </div>
+    
+    <script src="options.js"></script>
+</body>
+</html>

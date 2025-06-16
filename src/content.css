@@ -1,0 +1,208 @@
+/* content.css - Styles for content script injected elements */
+
+/* Cookie Analyzer notification styles */
+.cookie-analyzer-notification {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    z-index: 2147483647 !important;
+    max-width: 300px !important;
+    animation: cookieAnalyzerSlideIn 0.3s ease-out !important;
+    cursor: pointer !important;
+    transition: transform 0.2s ease !important;
+}
+
+.cookie-analyzer-notification:hover {
+    transform: translateY(-2px) !important;
+}
+
+.cookie-analyzer-notification.success {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+}
+
+.cookie-analyzer-notification.warning {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+}
+
+.cookie-analyzer-notification.error {
+    background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%) !important;
+}
+
+@keyframes cookieAnalyzerSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Auto-decline indicator */
+.cookie-analyzer-auto-decline-indicator {
+    position: fixed !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    background: rgba(72, 187, 120, 0.9) !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border-radius: 20px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    z-index: 2147483647 !important;
+    animation: cookieAnalyzerFadeIn 0.5s ease-out !important;
+}
+
+@keyframes cookieAnalyzerFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Blocked cookie banner overlay */
+.cookie-analyzer-blocked-banner {
+    position: relative !important;
+}
+
+.cookie-analyzer-blocked-banner::after {
+    content: "🚫 Cookie banner auto-declined" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(245, 101, 101, 0.9) !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    z-index: 1000 !important;
+}
+
+/* Privacy score overlay for the page */
+.cookie-analyzer-privacy-overlay {
+    position: fixed !important;
+    top: 50% !important;
+    right: 20px !important;
+    transform: translateY(-50%) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 2px solid #667eea !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    z-index: 2147483646 !important;
+    min-width: 200px !important;
+    animation: cookieAnalyzerSlideInRight 0.5s ease-out !important;
+}
+
+.cookie-analyzer-privacy-overlay h3 {
+    margin: 0 0 12px 0 !important;
+    color: #4a5568 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.cookie-analyzer-privacy-overlay .score {
+    display: inline-block !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    margin-bottom: 12px !important;
+}
+
+.cookie-analyzer-privacy-overlay .score.good {
+    background: #48bb78 !important;
+}
+
+.cookie-analyzer-privacy-overlay .score.medium {
+    background: #ed8936 !important;
+}
+
+.cookie-analyzer-privacy-overlay .score.bad {
+    background: #f56565 !important;
+}
+
+.cookie-analyzer-privacy-overlay .stats {
+    font-size: 12px !important;
+    color: #718096 !important;
+    line-height: 1.4 !important;
+}
+
+.cookie-analyzer-privacy-overlay .close-btn {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    background: none !important;
+    border: none !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    color: #a0aec0 !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.cookie-analyzer-privacy-overlay .close-btn:hover {
+    color: #4a5568 !important;
+}
+
+@keyframes cookieAnalyzerSlideInRight {
+    from {
+        transform: translateY(-50%) translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(-50%) translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Hide elements that have been marked as cookie banners */
+.cookie-analyzer-hidden {
+    display: none !important;
+}
+
+/* Highlight tracking elements for debugging */
+.cookie-analyzer-debug .cookie-analyzer-tracking-element {
+    outline: 2px solid #f56565 !important;
+    background: rgba(245, 101, 101, 0.1) !important;
+}
+
+/* Animation for newly detected cookie banners */
+.cookie-analyzer-new-banner {
+    animation: cookieAnalyzerPulse 2s ease-in-out !important;
+}
+
+@keyframes cookieAnalyzerPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}

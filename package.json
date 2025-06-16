@@ -1,0 +1,59 @@
+{
+  "name": "cookie-policy-analyzer",
+  "version": "1.0.0",
+  "description": "Browser extension for analyzing cookie policies and auto-declining tracking cookies",
+  "main": "background.js",
+  "scripts": {
+    "build": "npm run build:chrome && npm run build:firefox && npm run build:edge",
+    "build:chrome": "npm run clean:chrome && npm run copy:chrome && npm run manifest:chrome",
+    "build:firefox": "npm run clean:firefox && npm run copy:firefox && npm run manifest:firefox",
+    "build:edge": "npm run clean:edge && npm run copy:edge && npm run manifest:edge",
+    "clean:chrome": "node -e \"require('fs').rmSync('dist/chrome', {recursive: true, force: true})\"",
+    "clean:firefox": "node -e \"require('fs').rmSync('dist/firefox', {recursive: true, force: true})\"",
+    "clean:edge": "node -e \"require('fs').rmSync('dist/edge', {recursive: true, force: true})\"",
+    "copy:chrome": "node scripts/copy-files.js chrome",
+    "copy:firefox": "node scripts/copy-files.js firefox",
+    "copy:edge": "node scripts/copy-files.js edge",
+    "manifest:chrome": "node -e \"require('fs').copyFileSync('src/manifest-v3.json', 'dist/chrome/manifest.json')\"",
+    "manifest:firefox": "node -e \"require('fs').copyFileSync('src/manifest-v2.json', 'dist/firefox/manifest.json')\"",
+    "manifest:edge": "node -e \"require('fs').copyFileSync('src/manifest-v3.json', 'dist/edge/manifest.json')\"",
+    "package": "npm run package:chrome && npm run package:firefox && npm run package:edge",
+    "package:chrome": "node scripts/create-zip.js chrome",
+    "package:firefox": "node scripts/create-zip.js firefox",
+    "package:edge": "node scripts/create-zip.js edge",
+    "dev": "npm run build && npm run watch",
+    "watch": "chokidar \"src/**/*\" -c \"npm run build\"",
+    "lint": "eslint src/ --ext .js",
+    "test": "jest"
+  },
+  "keywords": [
+    "browser-extension",
+    "privacy",
+    "cookies",
+    "tracking",
+    "gdpr",
+    "chrome",
+    "firefox",
+    "edge"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0"
+  },
+  "browserslist": [
+    "Chrome >= 88",
+    "Firefox >= 109",
+    "Edge >= 88"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/cookie-policy-analyzer"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/cookie-policy-analyzer/issues"
+  },
+  "homepage": "https://github.com/yourusername/cookie-policy-analyzer#readme"
+}
