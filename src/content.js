@@ -331,69 +331,120 @@ class CookieAnalyzer {
     }
 
     async autoDeclineCookies() {
-        console.log('🍪 Starting auto-decline process...');
+        console.log('🍪 Starting auto-decline process on:', window.location.hostname);
         
         let declined = 0;
         
         // Show visual indicator
         this.showAutoDeclineIndicator();
         
-        // Method 1: Common cookie banner buttons (most reliable)
-        const commonSelectors = [
-            // BBC
+        // Wait a moment for the page to fully load
+        await this.sleep(1000);
+        
+        // BBC-specific selectors (they use complex cookie management)
+        const bbcSelectors = [
             'button[data-testid="banner-reject"]',
             'button[data-testid="reject-all"]',
-            
-            // CNN  
-            '.optanon-reject-all',
-            '#onetrust-reject-all-handler',
-            
-            // Guardian
-            '[data-link-name="reject all"]',
-            'button[data-cy="reject-all"]',
-            
-            // Generic selectors
+            'button[class*="reject"]',
             'button[id*="reject"]',
-            'button[class*="reject"]', 
-            'button[data-cy*="reject"]',
-            'button[data-testid*="reject"]',
-            'button[aria-label*="reject"]',
-            
-            // Text-based (broader)
-            'button:contains("Reject")',
-            'button:contains("Decline")',
-            'button:contains("No thanks")',
-            'button:contains("Refuse")',
-            'button:contains("Only necessary")',
-            'button:contains("Essential only")'
+            '[data-bbc-container="cookie"] button:last-child', // Often the reject button is last
+            '.fc-cta-do-not-consent', // BBC's consent framework
+            '.fc-button-reject',
+            '#fc-ccpa-link', // BBC California privacy link
+            '.cookie-banner button[data-testid]', // Any button in cookie banner
+            '.gdpr-banner button:not([data-testid*="accept"])', // Non-accept buttons
         ];
         
-        for (const selector of commonSelectors) {
+        // CNN-specific selectors
+        const cnnSelectors = [
+            '.optanon-reject-all',
+            '#onetrust-reject-all-handler',
+            '.ot-pc-refuse-all',
+            '#onetrust-pc-btn-handler'
+        ];
+        
+        // Guardian-specific selectors
+        const guardianSelectors = [
+            '[data-link-name="reject all"]',
+            'button[data-cy="reject-all"]',
+            '.dcr-1isob8f button:last-child' // Guardian's design system
+        ];
+        
+        // Generic selectors (broad coverage)
+        const genericSelectors = [
+            // Data attributes
+            'button[data-testid*="reject"]',
+            'button[data-cy*="reject"]',
+            'button[data-qa*="reject"]',
+            'button[data-role*="reject"]',
+            'button[data-testid*="decline"]',
+            'button[data-cy*="decline"]',
+            
+            // ID and class patterns
+            'button[id*="reject"]',
+            'button[class*="reject"]',
+            'button[id*="decline"]',
+            'button[class*="decline"]',
+            'button[id*="refuse"]',
+            'button[class*="refuse"]',
+            
+            // ARIA labels
+            'button[aria-label*="reject"]',
+            'button[aria-label*="decline"]',
+            'button[aria-label*="refuse"]',
+            
+            // Common frameworks
+            '.optanon-alert-box-wrapper button:last-child',
+            '#onetrust-banner-sdk button:last-child',
+            '.cookie-consent button:last-child',
+            '.gdpr-consent button:last-child',
+            
+            // Generic containers
+            '[class*="cookie"] button:last-child',
+            '[id*="cookie"] button:last-child',
+            '.consent-banner button:last-child'
+        ];
+        
+        // Combine all selectors based on site
+        let selectorsToTry = [...genericSelectors];
+        
+        const hostname = window.location.hostname.toLowerCase();
+        if (hostname.includes('bbc.')) {
+            selectorsToTry = [...bbcSelectors, ...selectorsToTry];
+            console.log('🍪 BBC detected, using BBC-specific selectors');
+        } else if (hostname.includes('cnn.')) {
+            selectorsToTry = [...cnnSelectors, ...selectorsToTry];
+            console.log('🍪 CNN detected, using CNN-specific selectors');
+        } else if (hostname.includes('guardian') || hostname.includes('theguardian')) {
+            selectorsToTry = [...guardianSelectors, ...selectorsToTry];
+            console.log('🍪 Guardian detected, using Guardian-specific selectors');
+        }
+        
+        // Try each selector
+        for (const selector of selectorsToTry) {
             try {
-                let elements;
-                
-                // Handle :contains() selectors differently
-                if (selector.includes(':contains(')) {
-                    const text = selector.match(/contains\("([^"]+)"\)/)[1];
-                    elements = Array.from(document.querySelectorAll('button')).filter(btn => 
-                        btn.textContent.toLowerCase().includes(text.toLowerCase())
-                    );
-                } else {
-                    elements = document.querySelectorAll(selector);
-                }
+                const elements = document.querySelectorAll(selector);
+                console.log(`🍪 Trying selector: ${selector} - Found ${elements.length} elements`);
                 
                 for (const element of elements) {
-                    if (element.offsetParent !== null) { // Is visible
-                        console.log('🍪 Found decline button:', selector, element);
-                        element.click();
-                        declined++;
-                        await this.sleep(500);
+                    if (this.isVisibleElement(element) && this.isLikelyDeclineButton(element)) {
+                        console.log('🍪 Found potential decline button:', element, 'Text:', element.textContent.trim());
                         
-                        // Hide parent container if it's a cookie banner
-                        const banner = this.findCookieBannerParent(element);
-                        if (banner) {
-                            banner.style.display = 'none';
-                            console.log('🍪 Hidden cookie banner parent');
+                        // Try to click it
+                        try {
+                            element.click();
+                            declined++;
+                            console.log('🍪 Successfully clicked decline button');
+                            await this.sleep(500);
+                            
+                            // Hide parent banner
+                            const banner = this.findCookieBannerParent(element);
+                            if (banner) {
+                                banner.style.display = 'none';
+                                console.log('🍪 Hidden cookie banner parent');
+                            }
+                        } catch (clickError) {
+                            console.log('🍪 Failed to click button:', clickError.message);
                         }
                     }
                 }
@@ -402,44 +453,167 @@ class CookieAnalyzer {
             }
         }
         
-        // Method 2: Hide common cookie banner containers
-        const bannerContainers = [
-            '#cookie-banner',
-            '#cookie-notice', 
-            '#cookie-consent',
-            '.cookie-banner',
-            '.cookie-notice',
-            '.cookie-consent',
-            '.gdpr-banner',
-            '#onetrust-banner-sdk',
-            '.optanon-alert-box-wrapper',
-            '[class*="cookie"]',
-            '[id*="cookie"]'
-        ];
-        
-        for (const selector of bannerContainers) {
-            try {
-                const elements = document.querySelectorAll(selector);
-                for (const element of elements) {
-                    if (this.isVisibleCookieBanner(element)) {
-                        element.style.display = 'none !important';
-                        element.style.visibility = 'hidden !important';
-                        console.log('🍪 Hidden cookie banner container:', selector);
+        // Method 2: Text-based search (more aggressive)
+        if (declined === 0) {
+            console.log('🍪 No buttons found with selectors, trying text-based search...');
+            
+            const allButtons = document.querySelectorAll('button, a, [role="button"], [onclick]');
+            console.log(`🍪 Found ${allButtons.length} clickable elements to check`);
+            
+            for (const element of allButtons) {
+                if (this.isVisibleElement(element) && this.isLikelyDeclineButton(element)) {
+                    console.log('🍪 Found decline button by text:', element.textContent.trim());
+                    try {
+                        element.click();
+                        declined++;
+                        await this.sleep(500);
+                        break; // Only click one to avoid issues
+                    } catch (error) {
+                        console.log('🍪 Failed to click text-based button:', error.message);
                     }
                 }
-            } catch (error) {
-                console.log('🍪 Banner hiding failed:', selector, error.message);
             }
+        }
+        
+        // Method 3: Hide cookie containers as fallback
+        if (declined === 0) {
+            console.log('🍪 No decline buttons worked, hiding cookie containers...');
+            this.hideCookieContainers();
         }
         
         console.log(`🍪 Auto-decline complete. Declined: ${declined} banners`);
         
-        // Remove indicator after a delay
+        // Update indicator
         setTimeout(() => {
             this.removeAutoDeclineIndicator();
-        }, 3000);
+            if (declined > 0) {
+                this.showSuccessIndicator(`Declined ${declined} cookie banner(s)`);
+            } else {
+                this.showWarningIndicator('No cookie banners found to decline');
+            }
+        }, 1000);
         
         return { declined, total: declined };
+    }
+
+    isVisibleElement(element) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        
+        return (
+            rect.width > 0 &&
+            rect.height > 0 &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.opacity !== '0' &&
+            element.offsetParent !== null
+        );
+    }
+
+    isLikelyDeclineButton(element) {
+        const text = element.textContent.toLowerCase().trim();
+        const ariaLabel = (element.getAttribute('aria-label') || '').toLowerCase();
+        const title = (element.getAttribute('title') || '').toLowerCase();
+        const className = (element.getAttribute('class') || '').toLowerCase();
+        const id = (element.getAttribute('id') || '').toLowerCase();
+        const dataTestId = (element.getAttribute('data-testid') || '').toLowerCase();
+        
+        const allText = `${text} ${ariaLabel} ${title} ${className} ${id} ${dataTestId}`;
+        
+        // Strong decline indicators
+        const declineTerms = [
+            'reject', 'decline', 'refuse', 'deny', 'no thanks', 'no, thanks',
+            'opt out', 'disable', 'turn off', 'block', 'dismiss',
+            'only necessary', 'essential only', 'necessary only',
+            'manage preferences', 'cookie settings', 'customize',
+            'no, i don\'t agree', 'i do not agree', 'disagree'
+        ];
+        
+        // Avoid accept buttons
+        const acceptTerms = ['accept', 'allow', 'agree', 'consent', 'ok', 'yes', 'enable', 'continue'];
+        
+        const hasDeclineTerm = declineTerms.some(term => allText.includes(term));
+        const hasAcceptTerm = acceptTerms.some(term => allText.includes(term));
+        
+        // Special case: if text is very short and generic, be more strict
+        if (text.length < 10 && !dataTestId.includes('reject') && !className.includes('reject')) {
+            return false;
+        }
+        
+        return hasDeclineTerm && !hasAcceptTerm;
+    }
+
+    hideCookieContainers() {
+        const containerSelectors = [
+            // BBC specific
+            '[data-bbc-container="cookie"]',
+            '.fc-consent-root',
+            '.fc-dialog-container',
+            
+            // Generic
+            '#cookie-banner', '#cookie-notice', '#cookie-consent',
+            '.cookie-banner', '.cookie-notice', '.cookie-consent',
+            '.gdpr-banner', '.gdpr-consent', '.consent-banner',
+            '#onetrust-banner-sdk', '.optanon-alert-box-wrapper',
+            '.ot-sdk-container', '.ot-fade-in',
+            
+            // Pattern-based
+            '[class*="cookie"]', '[id*="cookie"]',
+            '[class*="consent"]', '[id*="consent"]',
+            '[class*="gdpr"]', '[id*="gdpr"]'
+        ];
+        
+        for (const selector of containerSelectors) {
+            try {
+                const elements = document.querySelectorAll(selector);
+                for (const element of elements) {
+                    if (this.isVisibleCookieBanner(element)) {
+                        element.style.setProperty('display', 'none', 'important');
+                        element.style.setProperty('visibility', 'hidden', 'important');
+                        element.style.setProperty('opacity', '0', 'important');
+                        console.log('🍪 Hidden cookie container:', selector);
+                    }
+                }
+            } catch (error) {
+                console.log('🍪 Container hiding failed:', selector, error.message);
+            }
+        }
+    }
+
+    showSuccessIndicator(message) {
+        this.showIndicator(message, '#48bb78');
+    }
+
+    showWarningIndicator(message) {
+        this.showIndicator(message, '#ed8936');
+    }
+
+    showIndicator(message, color) {
+        this.removeAutoDeclineIndicator();
+        
+        const indicator = document.createElement('div');
+        indicator.id = 'cookie-analyzer-indicator';
+        indicator.innerHTML = `🍪 ${message}`;
+        indicator.style.cssText = `
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            background: ${color} !important;
+            color: white !important;
+            padding: 10px 15px !important;
+            border-radius: 5px !important;
+            z-index: 999999 !important;
+            font-family: Arial, sans-serif !important;
+            font-size: 14px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+            max-width: 300px !important;
+        `;
+        
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            this.removeAutoDeclineIndicator();
+        }, 4000);
     }
 
     findCookieBannerParent(element) {
